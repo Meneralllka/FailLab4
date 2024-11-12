@@ -1,0 +1,35 @@
+<launch>
+  <!-- Load controller configurations -->
+  <rosparam command="load" file="$(find moveit_failed2)/config/controllers.yaml"/>
+
+  <!-- Load joint names (if needed) -->
+  <rosparam command="load" file="$(find moveit_failed2)/config/joint_names.yaml"/>
+
+  <!-- Include robot description -->
+  <include file="$(find moveit_failed2)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <!-- Start the controller spawner node -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+        output="screen" args="joint_state_controller group1_controller group2_controller"/>
+
+  <!-- Set the moveit_controller_manager parameter before including move_group.launch -->
+  <param name="moveit_controller_manager" value="moveit_simple_controller_manager/MoveItSimpleControllerManager"/>
+
+  <!-- Include the move_group node -->
+  <include file="$(find moveit_failed2)/launch/move_group.launch">
+    <arg name="publish_monitored_planning_scene" value="true" />
+  </include>
+
+  <!-- Joint State Publisher -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="false"/>
+    <rosparam param="source_list">[joint_states]</rosparam>
+  </node>
+
+  <!-- Include RViz -->
+  <include file="$(find moveit_failed2)/launch/moveit_rviz.launch">
+    <arg name="rviz_config" value="$(find moveit_failed2)/launch/moveit.rviz"/>
+  </include>
+</launch>
